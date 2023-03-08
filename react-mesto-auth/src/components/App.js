@@ -48,7 +48,8 @@ function App() {
   }, []);
 
   React.useEffect(() => {
-    api.getUserInfo()
+    if (loggedIn){
+      api.getUserInfo()
       .then((data) => {
         //console.log(data)
         setCurrentUser(data)
@@ -57,17 +58,21 @@ function App() {
       .catch((err) => {
         console.log(`Ошибка. Запрос не выполнен ${err}`);
       })
-  }, []);
+    }
+
+  }, [loggedIn]);
 
   React.useEffect(() => {
-    api.getInitialCards()
-      .then((data) => {
-        setCards(data)
-      })
-      .catch((err) => {
-        console.log(`Ошибка. Запрос не выполнен ${err}`);
-      })
-  }, []);
+    if (loggedIn) {
+      api.getInitialCards()
+        .then((data) => {
+          setCards(data)
+        })
+        .catch((err) => {
+          console.log(`Ошибка. Запрос не выполнен ${err}`);
+        })
+    }
+  }, [loggedIn]);
 
   useEffect(() => {
     tokenCheck();
@@ -82,11 +87,13 @@ function App() {
         auth.checkToken(jwt).then((res) => {
           if (res) {
             // авторизуем пользователя
-            // КАК Я ПОНЯЛ, ПОКА НЕ РАБОТАЕТ ПОДСТАНОВКА В СТАРЫЕ МЕТОДЫ API ТОКЕНА, ДЛЯ ПОЛУЧЕНИЯ АВАТАРКИ НОВЫХ ПОЛЬЗОВАТЕЛЕЙ И ЛАЙКОВ, ПОПРОБОВАЛ В РУЧНУЮ ПОДСТАВИТЬ - НЕ РАБОТАЕ (ПО ЗАДАНИЮ ВРОДЕ НЕ НУЖНО)
             //api.setToken(jwt)
             setLoggedIn(true);
             setEmail(res.data.email)
           }
+        })
+        .catch((err) => {
+          console.log(`Ошибка. Запрос не выполнен ${err}`);
         });
       }
     }
@@ -192,31 +199,6 @@ function App() {
     setActiveMenu(!activeMenu);
   }
 
-  /*
-  <Route path="/" element={<ProtectedRoute element={<>
-            <Header
-              email={"mrrezak555@yandex.ru"}
-              link={"/sign-in"}
-              textLink={"Выйти"}
-              isMobile={width <= 580}
-              handleActiveMenu={handleActiveMenu}
-              activeMenu={activeMenu}
-            />
-            <Main handleEditAvatarClick={handleEditAvatarClick}
-              handleEditProfileClick={handleEditProfileClick}
-              handleAddPlaceClick={handleAddPlaceClick}
-              onCardClick={handleCardClick}
-              onCardLike={handleCardLike}
-              onCardDelete={handleCardDelete} />
-            <Footer />
-            <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleSubmitProfile} />
-            <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
-            <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={hadleAddPlace} />
-            <ImagePopup
-              card={selectedCard}
-              onClose={closeAllPopups} />
-          </>} loggedIn={loggedIn} />} />
-  */
   function handleSubmitRegister(dataReg) {
     auth.register(dataReg)
       .then((data) => {
@@ -240,10 +222,12 @@ function App() {
       })
       .catch((err) => {
         console.log(`Ошибка. Запрос не выполнен ${err}`);
+        setRightRegistration(false);
+        setInfoTooltipOpen(true);
       })
   }
 
-  function handleLogOut(){
+  function handleLogOut() {
     localStorage.removeItem('jwt');
     setLoggedIn(false);
   }
